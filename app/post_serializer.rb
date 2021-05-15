@@ -3,7 +3,7 @@ require_relative "serializer"
 class PostSerializer < Serializer
   attribute :id
   attribute :title
-  attribute :date do
+  attribute :date do |object|
     object.date.strftime("%d-%m-%Y")
   end
 end
