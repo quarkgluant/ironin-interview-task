@@ -4,11 +4,6 @@ class Serializer
 
   def initialize(struct)
     @struct = struct
-    struct.members.each do |member|
-      struct.class.define_singleton_method member do
-        struct.dig member
-      end
-    end
   end
 
   def self.attribute(attribute_name)
@@ -20,6 +15,12 @@ class Serializer
   end
 
   def serialize
+    last_object = struct
+    struct.members.each do |member|
+      struct.class.define_singleton_method member do
+        last_object.dig member
+      end
+    end
     @@fields.each_with_object({}) do |hash_field, hash|
       hash_field.keys.each do |klass_name|
         if self.class.name == klass_name.to_s
