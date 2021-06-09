@@ -25,11 +25,7 @@ class Serializer
       hash_field.keys.each do |klass_name|
         if self.class.name == klass_name.to_s
           attr, klass, my_proc = hash_field[klass_name]
-          result = if my_proc.is_a?(Proc)
-                     my_proc.call()
-                   else
-                     klass.send attr
-                   end
+          result = my_proc.is_a?(Proc) ? my_proc.call() : klass.send(attr)
           hash[attr] = result
         end
       end
