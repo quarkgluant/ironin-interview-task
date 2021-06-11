@@ -11,10 +11,10 @@ class Serializer
   end
 
   def serialize
-    @@fields[klass_name = self.class.to_s].keys.each_with_object({}) do |attribute_name, hash|
+    @@fields[klass_name = self.class.to_s].keys.each_with_object({}) do |attribute_name, result|
       my_proc = @@fields[klass_name][attribute_name]
-      result = my_proc.is_a?(Proc) ? instance_exec(&my_proc) : object.send(attribute_name)
-      hash[attribute_name] = result
+      value = my_proc.is_a?(Proc) ? instance_eval(&my_proc) : object.send(attribute_name)
+      result[attribute_name] = value
     end
   end
 end
