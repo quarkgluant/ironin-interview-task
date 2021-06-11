@@ -1,34 +1,20 @@
 class Serializer
-  attr_reader :struct
-  @@fields = []
+  attr_reader :object
+  @@fields = Hash.new { |h, k| h[k] = {} }
 
   def initialize(struct)
-    @struct = struct
+    @object = struct
   end
 
-  def self.attribute(attribute_name)
-    klass_name = self.to_s.delete_suffix('Serializer')
-    klass = Object.const_get(klass_name)
-    self.define_singleton_method('object') { klass }
-    my_proc = proc { yield } if block_given?
-    @@fields << { self.to_s  => [attribute_name, klass, my_proc] }
+  def self.attribute(attribute_name, &attribute_bloc)
+     @@fields[self.to_s][attribute_name] = attribute_bloc
   end
 
   def serialize
-    last_object = struct
-    struct.members.each do |member|
-      struct.class.define_singleton_method member do
-        last_object.dig member
-      end
-    end
-    @@fields.each_with_object({}) do |hash_field, hash|
-      hash_field.keys.each do |klass_name|
-        if self.class.name == klass_name.to_s
-          attr, klass, my_proc = hash_field[klass_name]
-          result = my_proc.is_a?(Proc) ? my_proc.call() : klass.send(attr)
-          hash[attr] = result
-        end
-      end
+    @@fields[klass_name = self.class.to_s].keys.each_with_object({}) do |attribute_name, hash|
+      my_proc = @@fields[klass_name][attribute_name]
+      result = my_proc.is_a?(Proc) ? instance_exec(&my_proc) : object.send(attribute_name)
+      hash[attribute_name] = result
     end
   end
 end
